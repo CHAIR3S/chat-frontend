@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
-import { webSocketService } from './service/WebSocketService';
+import { WebsocketService } from './service/WebSocketService';
+
 
 @Component({
   selector: 'app-root',
@@ -18,7 +19,11 @@ export class AppComponent implements OnInit, OnDestroy{
   public messages: any[] = [];
 
 
-  constructor(private webSocketService: webSocketService) {}
+  constructor(private wsService: WebsocketService) {
+
+    
+
+  }
 
   ngOnInit(): void {
     this.initializeSocketConnection();
@@ -60,24 +65,18 @@ export class AppComponent implements OnInit, OnDestroy{
       },
     };
 
-    // Enviar el mensaje al destino "/app/chat1"
-    this.webSocketService.sendMessage('/app/chat1', message);
+
+    this.wsService.sendMessage("1", message)
+
   }
 
   
   initializeSocketConnection(): void {
-    this.webSocketService.connectSocket();
+    this.wsService.joinRoom("1")
   }
 
-  // Receives response from socket connection 
-  receiveSocketResponse() {
-  this.webSocketService.receiveStatus().subscribe((receivedMessage: any) => {
-    console.log(receivedMessage);
-  });
-  }
 
   // Disconnects socket connection
   disconnectSocket() {
-  this.webSocketService.disconnectSocket();
  }
 }
