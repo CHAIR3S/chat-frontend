@@ -8,7 +8,7 @@ import { Client, StompConfig } from '@stomp/stompjs';
 })
 export class WebsocketService {
 
-  private stompClient!: Client;
+  public stompClient!: Client;
   private urlConnection = 'ws://localhost:8090/chats/websocket';
 
 
@@ -37,6 +37,7 @@ export class WebsocketService {
       onConnect: (frame) => {
         console.log('Connected: ' + frame);
         this.joinRoom("1");
+        
       },
       onStompError: (frame) => {
         console.error('Broker reported error: ' + frame.headers['message']);

@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { WebsocketService } from './service/WebSocketService';
+import { QueueService } from './service/queue-service.service';
 
 
 @Component({
@@ -19,7 +20,10 @@ export class AppComponent implements OnInit, OnDestroy{
   public messages: any[] = [];
 
 
-  constructor(private wsService: WebsocketService) {
+  constructor(
+    private wsService: WebsocketService,
+    private queueService: QueueService
+  ) {
 
     
 
@@ -56,23 +60,37 @@ export class AppComponent implements OnInit, OnDestroy{
       idMensaje: 1,
       texto: 'Hola, este es un mensaje de prueba',
       fecha: new Date().toISOString(),
-      archivo: 'ruta/del/archivo.txt',
+      archivo: '',
       usuario: {
-        idUsuario: 123,
+        idUsuario: 1,
       },
       chat: {
-        idChat: 456,
+        idChat: 1,
       },
     };
 
 
-    this.wsService.sendMessage("1", message)
+    // this.wsService.sendMessage("1", message)
+    this.queueService.publishMessage();
 
   }
 
   
   initializeSocketConnection(): void {
     this.wsService.joinRoom("1")
+
+    this.wsService.stompClient.subscribe('/topic/canal1', (message) => {
+      const receivedMessage = JSON.parse(message.body);
+      this.messages.push({ 
+        user: 'Server', 
+        message: receivedMessage.texto, 
+        time: new Date(receivedMessage.fecha).toLocaleTimeString(), 
+        own: false 
+      });
+
+      console.log('recibiendo mensaje')
+      console.log(this.messages)
+    });
   }
 
 
