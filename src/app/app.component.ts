@@ -3,6 +3,8 @@ import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { WebsocketService } from './service/WebSocketService';
 import { QueueService } from './service/queue-service.service';
+import { Mensaje } from './interface/Mensaje';
+import { ChatService } from './service/chat.service';
 
 
 @Component({
@@ -22,7 +24,8 @@ export class AppComponent implements OnInit, OnDestroy{
 
   constructor(
     private wsService: WebsocketService,
-    private queueService: QueueService
+    private queueService: QueueService,
+    private chatService: ChatService
   ) {
 
     
@@ -30,7 +33,11 @@ export class AppComponent implements OnInit, OnDestroy{
   }
 
   ngOnInit(): void {
-    this.initializeSocketConnection();
+    // this.initializeSocketConnection();
+    
+    // const idChat = 1; // El idChat que quieras consultar
+    // this.chatService.subscribeToMessages(idChat); // Suscríbete a los mensajes
+    // this.chatService.sendChatId(idChat); // Envía el idChat al servidor
   }
 
   
@@ -56,22 +63,21 @@ export class AppComponent implements OnInit, OnDestroy{
 
 
   sendMessageSocket(): void {
-    const message = {
-      idMensaje: 1,
-      texto: 'Hola, este es un mensaje de prueba',
-      fecha: new Date().toISOString(),
-      archivo: '',
-      usuario: {
-        idUsuario: 1,
-      },
-      chat: {
-        idChat: 1,
-      },
+    const message: Mensaje = {
+      idMensaje: 0,
+      chatId: 1,
+      emisorId: 1,
+      mensaje: 'Hola rabbit',
+      fechaHora: new Date()
     };
 
 
     // this.wsService.sendMessage("1", message)
-    this.queueService.publishMessage();
+    
+    const exchange = 'CHAT_EXCHANGE'; // Nombre del exchange configurado en RabbitMQ
+    const routingKey = 'CHAT_QUEUE';  // La clave de enrutamiento usada en la configuración
+    this.queueService.sendMessageToExchange(exchange, routingKey, message);
+    console.log('Mensaje enviado:', message);
 
   }
 
@@ -96,5 +102,12 @@ export class AppComponent implements OnInit, OnDestroy{
 
   // Disconnects socket connection
   disconnectSocket() {
+ }
+
+
+ subscribeSocket(){
+  console.log('subscribesocket')
+  const idChat = 1; // El idChat que quieras consultar
+  this.chatService.subscribeToMessages(idChat);
  }
 }

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import SockJS from 'sockjs-client';
 import {Stomp} from '@stomp/stompjs';
-import { Client, StompConfig } from '@stomp/stompjs';
+import { Client } from '@stomp/stompjs';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +13,7 @@ export class WebsocketService {
 
 
   constructor(){
-    this.initConnectionSocket();
+    // this.initConnectionSocket();
   }
 
 

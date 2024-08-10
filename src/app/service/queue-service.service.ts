@@ -1,57 +1,45 @@
 import { Injectable } from '@angular/core';
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
+import { Mensaje } from '../interface/Mensaje';
 
 @Injectable({
   providedIn: 'root'
 })
 export class QueueService {
-
-  private rabbit = new Connection('amqp://guest:guest@localhost:5672')
-  private pub: any;
+  private client: Client;
 
   constructor() {
-    this.initializeConnection();
-    this.createPublisher();
-   }
+    this.client = new Client({
+      brokerURL: 'ws://localhost:15674/ws', // URL del WebSocket de RabbitMQ
+      connectHeaders: {
+        login: 'guest',  // Cambia esto por el usuario de RabbitMQ si es diferente
+        passcode: 'guest' // Cambia esto por la contraseña de RabbitMQ si es diferente
+      },
+      debug: (str) => {
+        // console.log(new Date(), str);
+      },
+      reconnectDelay: 5000,
+      heartbeatIncoming: 4000,
+      heartbeatOutgoing: 4000
+    });
 
+    this.client.onConnect = () => {
+      console.log('Conectado a RabbitMQ WebSocket');
+    };
 
-  initializeConnection() {
-    this.rabbit.on('error', (err) => {
-      console.log('RabbitMQ connection error', err)
-    })
-    this.rabbit.on('connection', () => {
-      console.log('Connection successfully (re)established')
-    })
+    this.client.onStompError = (frame) => {
+      console.error('Error en STOMP: ' + frame.headers['message']);
+      console.error('Detalles: ' + frame.body);
+    };
+
+    this.client.activate();
   }
 
-  createPublisher() {
-    this.pub = this.rabbit.createPublisher({
-      // Enable publish confirmations, similar to consumer acknowledgements
-      confirm: true,
-      // Enable retries
-      maxAttempts: 2,
-      // Optionally ensure the existence of an exchange before we use it
-      exchanges: [{exchange: 'my-events', type: 'topic'}]
-    })
+  sendMessageToExchange(exchange: string, routingKey: string, message: Mensaje) {
+    this.client.publish({
+      destination: `/exchange/${exchange}/${routingKey}`, // Formato para enviar a un exchange en RabbitMQ
+      body: JSON.stringify(message)
+    });
   }
-
-
-  async publishMessage(){
-    await this.pub.send(
-      {exchange: 'CHAT_EXCHANGE'}, // metadata
-      {id: 1, name: 'Alan Turing'}) // message content
-    
-    // Or publish directly to a queue
-    // await this.pub.send('user-events', {id: 1, name: 'Alan Turing'})
- 
-  }
-
-
-  // Clean up when you receive a shutdown signal
-  async onShutdown() {
-    // Waits for pending confirmations and closes the underlying Channel
-    await this.pub.close()
-    await this.rabbit.close()
-  }
-
-
 }
