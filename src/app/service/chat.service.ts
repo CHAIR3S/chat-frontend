@@ -1,12 +1,14 @@
 import { Injectable } from '@angular/core';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import { Mensaje } from '../interface/Mensaje';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ChatService {
   private stompClient: Client;
+  public messages: Mensaje[] = [];
 
   constructor() {
     this.stompClient = new Client({
@@ -29,11 +31,19 @@ export class ChatService {
 
   subscribeToMessages(idChat: number) {
     this.stompClient.subscribe(`/topic/messages/${idChat}`, (message: any) => {
-      const chatMessages = JSON.parse(message.body);
+      const chatMessages: Mensaje[] = JSON.parse(message.body);
+
       console.log(chatMessages); // Aquí puedes actualizar el estado en tu aplicación
+
+      if(this.messages.length != chatMessages.length ){
+        console.log('Se actualiza chat')
+        this.messages = chatMessages
+      }
       
     });
-    this.sendChatId(idChat); // Envía el idChat al servidor
+    
+    //SOlo se ejecuta una vez, envia el id del chat al backend web socket
+    this.sendChatId(idChat); 
   }
 
   sendChatId(idChat: number) {
