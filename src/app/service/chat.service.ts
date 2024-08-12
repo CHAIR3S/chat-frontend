@@ -1,16 +1,30 @@
 import { Injectable } from '@angular/core';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import { Mensaje } from '../interface/Mensaje';
+import { Mensaje, Chat, ChatMensajes } from '../interface/Mensaje';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ChatService {
-  private stompClient: Client;
+  private stompClient!: Client;
   public messages: Mensaje[] = [];
+  public chats: Chat[] = [];
+  public chatMensajes: ChatMensajes[] = [];
+  private urlController: string = 'http://localhost:8080/conversaciones/';
+  
 
-  constructor() {
+
+  constructor(private http: HttpClient) {
+
+  }
+
+
+  connectToChanel(chats: number[]) {
+
+    console.log('conectand al canal')
     this.stompClient = new Client({
       webSocketFactory: () => new SockJS('http://localhost:8080/chat-websocket'),
       reconnectDelay: 5000,
@@ -21,24 +35,50 @@ export class ChatService {
     this.stompClient.onConnect = (frame) => {
       console.log('Connected: ' + frame);
 
-      const idChat = 1; 
-      this.subscribeToMessages(idChat);
+      chats.map(idChat => {
+        this.subscribeToMessages(idChat);
+      })
     };
 
     this.stompClient.activate();
-
   }
+
 
   subscribeToMessages(idChat: number) {
     this.stompClient.subscribe(`/topic/messages/${idChat}`, (message: any) => {
-      const chatMessages: Mensaje[] = JSON.parse(message.body);
+      let mensajesObtenidos: Mensaje[] = [];
+      mensajesObtenidos = JSON.parse(message.body);
+      
+      if(mensajesObtenidos.length > 0){
+        // console.log(mensajesObtenidos)
 
-      console.log(chatMessages); // Aquí puedes actualizar el estado en tu aplicación
 
-      if(this.messages.length != chatMessages.length ){
-        console.log('Se actualiza chat')
-        this.messages = chatMessages
+        const chatMensajesObtenidos: ChatMensajes[] = [];
+  
+
+        const indice = this.chatMensajes.findIndex(chat => chat.idChat == idChat);
+
+        // console.log(this.chatMensajes)
+        
+        //Se guarda un chat con sus mensajes 
+        chatMensajesObtenidos.push(
+          {
+            idChat: idChat,
+            mensajes: mensajesObtenidos
+          })
+
+          
+          
+          if((this.chatMensajes[indice].mensajes.length != chatMensajesObtenidos[0].mensajes.length)){
+            console.log('Se actualiza chat')
+            // this.chatMensajes[indice].mensajes = chatMensajesObtenidos[0].mensajes;
+            this.chatMensajes[indice] = { ...this.chatMensajes[indice], mensajes: chatMensajesObtenidos[0].mensajes };
+          }
       }
+
+        
+
+
       
     });
     
@@ -47,7 +87,15 @@ export class ChatService {
   }
 
   sendChatId(idChat: number) {
-    console.log('publicando ejecutando metodo')
+    // console.log('publicando ejecutando metodo')
     this.stompClient.publish({destination: `/app/chat/${idChat}`, body: String(idChat)});
   }
+
+
+  obtenerChatsPorUsuario(idUsuario: number): Observable<Chat[]>{
+    return this.http.get<Chat[]>(this.urlController + idUsuario);
+  }
+
+
+
 }

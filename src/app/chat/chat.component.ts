@@ -2,16 +2,18 @@ import { Component } from '@angular/core';
 import { WebsocketService } from '../service/WebSocketService';
 import { QueueService } from '../service/queue-service.service';
 import { ChatService } from '../service/chat.service';
-import { Mensaje } from '../interface/Mensaje';
+import { Chat, Mensaje } from '../interface/Mensaje';
 import { ActivatedRoute, RouterLink, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MessageComponent } from "./component/message/message.component";
 import { Form, FormsModule } from "@angular/forms"
+import { ChatCardComponent } from './component/chat-card/chat-card.component';
+import { consumerMarkDirty } from '@angular/core/primitives/signals';
 
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [CommonModule, RouterLink, MessageComponent, ChatComponent, FormsModule],
+  imports: [CommonModule, RouterLink, MessageComponent, ChatComponent, FormsModule, ChatCardComponent],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.css'
 })
@@ -20,13 +22,11 @@ export class ChatComponent {
 
   messageInput: any;
   idUser: number = 0;
-
-
-
   message: string = '';
+  chatsIds: number[] = [];
+  chatActual: number = 0;
 
   constructor(
-    private wsService: WebsocketService,
     private queueService: QueueService,
     public chatService: ChatService,
     private route: ActivatedRoute
@@ -40,22 +40,30 @@ export class ChatComponent {
   }
 
   ngOnInit(): void {
-    // this.initializeSocketConnection();
+    
+    this.chatService.obtenerChatsPorUsuario(this.idUser).subscribe(chats => {
+      this.chatService.chats = chats;
 
-    // const idChat = 1; // El idChat que quieras consultar
-    // this.chatService.subscribeToMessages(idChat); // Suscríbete a los mensajes
-    // this.chatService.sendChatId(idChat); // Envía el idChat al servidor
 
-    // const message: Mensaje = {
-    //   idMensaje: 1,
-    //   chatId: 1,
-    //   emisorId: 1,
-    //   mensaje: 'Hola rabbit',
-    //   fechaHora: new Date()
-    // };
-    // this.messages.push(message)
+      
 
-    this.initializeSocketConnection();
+      this.chatService.chats.map(chat => {
+        this.chatsIds.push(chat.idChat);
+      
+        this.chatService.chatMensajes.push(
+          {
+            idChat: chat.idChat,
+            mensajes: []
+          })
+      })
+
+
+      
+    
+      this.chatService.connectToChanel(this.chatsIds);
+
+    })
+
   }
 
 
@@ -92,7 +100,7 @@ export class ChatComponent {
 
       const messageToSend: Mensaje = {
         idMensaje: 0,
-        chatId: 1,
+        chatId: this.chatActual,
         emisorId: this.idUser,
         mensaje: this.message.trim(),
         fechaHora: new Date()
@@ -115,21 +123,31 @@ export class ChatComponent {
   }
 
 
-  initializeSocketConnection(): void {
-    this.wsService.stompClient.subscribe('/topic/canal1', (message) => {
-    });
-  }
-
 
   // Disconnects socket connection
   disconnectSocket() {
- }
+  }
 
 
  subscribeSocket(){
   console.log('subscribesocket')
   const idChat = 1; // El idChat que quieras consultar
   this.chatService.subscribeToMessages(idChat);
+ }
+
+ changeChat($event: number){
+
+  this.chatActual = $event
+
+  console.log('nuevo evento ' + $event)
+
+  const index = this.chatService.chatMensajes.findIndex(chat => chat.idChat == $event)
+
+
+  console.log(this.chatService.chatMensajes)
+  if(this.chatService.chatMensajes[index])
+    this.chatService.messages = this.chatService.chatMensajes[index].mensajes;
+
  }
 
 }
