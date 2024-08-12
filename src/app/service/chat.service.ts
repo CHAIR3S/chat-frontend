@@ -4,6 +4,7 @@ import SockJS from 'sockjs-client';
 import { Mensaje, Chat, ChatMensajes } from '../interface/Mensaje';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { ChatComponent } from '../chat/chat.component';
 
 @Injectable({
   providedIn: 'root'
@@ -13,11 +14,13 @@ export class ChatService {
   public messages: Mensaje[] = [];
   public chats: Chat[] = [];
   public chatMensajes: ChatMensajes[] = [];
+  public chatAct: any;
   private urlController: string = 'http://localhost:8080/conversaciones/';
   
 
 
-  constructor(private http: HttpClient) {
+  constructor(
+    private http: HttpClient) {
 
   }
 
@@ -73,7 +76,9 @@ export class ChatService {
             console.log('Se actualiza chat')
             // this.chatMensajes[indice].mensajes = chatMensajesObtenidos[0].mensajes;
             this.chatMensajes[indice] = { ...this.chatMensajes[indice], mensajes: chatMensajesObtenidos[0].mensajes };
-            this.messages = chatMensajesObtenidos[0].mensajes;
+
+            if(this.chatAct == this.chatMensajes[indice].idChat)
+              this.messages = chatMensajesObtenidos[0].mensajes;
           }
       }
 

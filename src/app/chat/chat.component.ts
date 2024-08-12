@@ -138,6 +138,7 @@ export class ChatComponent {
  changeChat($event: number){
 
   this.chatActual = $event
+  this.chatService.chatAct = this.chatActual;
 
   console.log('nuevo evento ' + $event)
 
