@@ -49,13 +49,21 @@
               <div class="bg-white  rounded-lg overflow-hidden">
                   <ul class="divide-y divide-gray-200">
                       
-                    @for (chat of chatService.chats; track chat.idChat) {
-                      
-                      <app-chat-card 
-                      [nombre]="(idUser == chat.viaje.conductor.idUsuario) ? chat.viaje.cliente.nombre : chat.viaje.conductor.nombre" 
-                      [mensaje]="'Ultimo mensajito'" [idChat]="chat.idChat"
-                      (change)="changeChat($event)"
-                      />
+                    @if(chatService.chats.length != 0){
+
+                      @for (chat of chatService.chats; track chat.idChat) {
+                        
+                        <app-chat-card 
+                        [nombre]="(idUser == chat.viaje.conductor.idUsuario) ? chat.viaje.cliente.nombre : chat.viaje.conductor.nombre" 
+                        [mensaje]="obtenerUltimoMensaje(chat.idChat)" [idChat]="chat.idChat"
+                        (change)="changeChat($event)"
+                        />
+  
+                      }
+                    } @else {
+                      <div class="flex items-center justify-center">
+                        No hay chats por mostrar
+                      </div>
                     }
 
 
@@ -200,38 +208,31 @@
             <span class="sr-only">Video</span>
           </Button>
           <Button variant="ghost" size="icon" class="h-8 w-8">
-            <!-- <MoveHorizontalIcon class="h-4 w-4" /> -->
+            
             <span class="sr-only">More</span>
           </Button>
         </div>
       </header>
-      <main class="flex-1 overflow-auto p-4 md:p-6">
+      <main class="flex-1 overflow-auto p-4 md:p-6" >
         <div class="grid gap-4 h-1">
 
                     
-          @for(message of chatService.messages; track message.idMensaje){
+          
+          
+          @if(chatService.messages.length != 0){
+            @for(message of chatService.messages; track message.idMensaje){
+  
+              <div class="flex items-start gap-4 "  [ngClass]="(message.emisorId == idUser) ? 'justify-end' : ''">
+                <app-message [id]="message.emisorId" [name]="(message.emisorId == idUser) ? 'Tú' : 'Usuario ' + message.emisorId" [message]="message.mensaje" [time]="message.fechaHora.toString()"/>
+              </div>
+            }
 
-            <div class="flex items-start gap-4 "  [ngClass]="(message.emisorId == idUser) ? 'justify-end' : ''">
-              <app-message [id]="message.emisorId" [name]="(message.emisorId == idUser) ? 'Tú' : 'Usuario ' + message.emisorId" [message]="message.mensaje" [time]="message.fechaHora.toString()"/>
+          } @else {
+            <div class="flex items-center justify-center">
+              No hay chats por mostrar...
             </div>
           }
 
-          <!-- <div class="flex items-start gap-4 justify-end">
-            <div class="grid gap-1 text-sm">
-              <div class="font-medium text-right">You</div>
-              <div class="bg-primary rounded-lg p-3 text-primary-foreground">
-                Sounds good! I'm available anytime after 4pm. Looking forward to catching up.
-              </div>
-              <div class="text-xs text-muted-foreground text-right">3:47 PM</div>
-            </div>
-          </div>
-          <div class="flex items-start gap-4">
-            <div class="grid gap-1 text-sm">
-              <div class="font-medium">John Doe</div>
-              <div class="bg-muted rounded-lg p-3">Great, I'll send you a calendar invite. Talk to you then!</div>
-              <div class="text-xs text-muted-foreground">3:48 PM</div>
-            </div>
-          </div> -->
           
         </div>
       </main>

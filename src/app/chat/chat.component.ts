@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { WebsocketService } from '../service/WebSocketService';
 import { QueueService } from '../service/queue-service.service';
 import { ChatService } from '../service/chat.service';
@@ -24,7 +24,7 @@ export class ChatComponent {
   idUser: number = 0;
   message: string = '';
   chatsIds: number[] = [];
-  chatActual: number = 0;
+  public chatActual: number = 0;
 
   constructor(
     private queueService: QueueService,
@@ -147,6 +147,19 @@ export class ChatComponent {
   console.log(this.chatService.chatMensajes)
   if(this.chatService.chatMensajes[index])
     this.chatService.messages = this.chatService.chatMensajes[index].mensajes;
+
+ }
+
+
+
+ obtenerUltimoMensaje(idChat: number): string{
+
+  const index = this.chatService.chatMensajes.findIndex(chat => chat.idChat == idChat)
+
+  if(this.chatService.chatMensajes[index].mensajes.length != 0)
+    return this.chatService.chatMensajes[index].mensajes[this.chatService.chatMensajes[index].mensajes.length-1].mensaje;
+  else
+    return '*No hay mensajes aún*'
 
  }
 
