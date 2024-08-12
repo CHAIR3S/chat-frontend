@@ -73,6 +73,7 @@ export class ChatService {
             console.log('Se actualiza chat')
             // this.chatMensajes[indice].mensajes = chatMensajesObtenidos[0].mensajes;
             this.chatMensajes[indice] = { ...this.chatMensajes[indice], mensajes: chatMensajesObtenidos[0].mensajes };
+            this.messages = chatMensajesObtenidos[0].mensajes;
           }
       }
 
