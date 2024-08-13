@@ -38,6 +38,8 @@ export class QueueService {
 
   sendMessageToExchange(exchange: string, routingKey: string, message: Mensaje) {
     this.client.publish({
+
+      
       destination: `/exchange/${exchange}/${routingKey}`, // Formato para enviar a un exchange en RabbitMQ
       body: JSON.stringify(message)
     });

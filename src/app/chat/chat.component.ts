@@ -73,19 +73,13 @@ export class ChatComponent {
 
 
 
-  sendMessage() {
-     if (this.message.trim()) {
-       console.log('Mensaje enviado:', this.message);
-       // Aquí puedes agregar el código para enviar el mensaje
-       this.message = ''; // Limpiar el textarea después de enviar el mensaje
-     }
-   }
-
  // Método que se ejecuta al presionar Enter
  onEnterPress(event: any) {
    if (!event.shiftKey) {
      event.preventDefault(); // Prevenir el salto de línea
-      this.sendMessageSocket(); // Ejecutar la función de envío de mensaje
+
+     //Enviar mensaje a socket
+      this.sendMessageSocket(); 
     }
   }
 
@@ -94,7 +88,6 @@ export class ChatComponent {
   sendMessageSocket(): void {
 
 
-    // this.wsService.sendMessage("1", message)
 
     if (this.message.trim()) {
 
@@ -112,11 +105,12 @@ export class ChatComponent {
 
       const exchange = 'CHAT_EXCHANGE'; // Nombre del exchange configurado en RabbitMQ
       const routingKey = 'CHAT_QUEUE';  // La clave de enrutamiento usada en la configuración
+
       this.queueService.sendMessageToExchange(exchange, routingKey, messageToSend);
       console.log('Mensaje enviado:', messageToSend);
 
-
-      this.message = ''; // Limpiar el textarea después de enviar el mensaje
+      // Limpiar textarea
+      this.message = ''; 
     }
 
 
@@ -124,7 +118,7 @@ export class ChatComponent {
 
 
 
-  // Disconnects socket connection
+  
   disconnectSocket() {
   }
 

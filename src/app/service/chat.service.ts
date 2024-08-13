@@ -63,7 +63,7 @@ export class ChatService {
 
         // console.log(this.chatMensajes)
         
-        //Se guarda un chat con sus mensajes 
+        
         chatMensajesObtenidos.push(
           {
             idChat: idChat,
